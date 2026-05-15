@@ -1,0 +1,397 @@
+/* ==========================================
+   DeepSeek Monitor - 深色毛玻璃主题
+   商用级视觉风格
+   ========================================== */
+
+/* ---- 全局 ---- */
+QWidget {
+    font-family: -apple-system, "Microsoft YaHei UI", "Segoe UI", "PingFang SC", sans-serif;
+    font-size: 13px;
+}
+
+/* ---- 主悬浮窗 ---- */
+#FloatingWindow {
+    background: rgba(18, 18, 28, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+}
+
+/* ---- 标题栏 ---- */
+#TitleBar {
+    background: transparent;
+    border: none;
+    min-height: 32px;
+    max-height: 32px;
+}
+
+#TitleLabel {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+#CloseBtn, #MinBtn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    min-width: 20px;
+    min-height: 20px;
+}
+
+#CloseBtn:hover {
+    background: rgba(255, 70, 70, 0.3);
+    color: #ff4646;
+}
+
+#MinBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* ---- 标题栏金额 ---- */
+#TitleAmountLabel {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    padding-right: 6px;
+}
+
+#TitleAmountLabel:hover {
+    color: #a5b4fc;
+}
+
+/* ---- 余额卡片 ---- */
+#BalanceCard {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+#BalanceLabel {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+
+/* ---- 余额金额数字 ---- */
+#BalanceAmount {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+#BalanceAmount:hover {
+    color: #a5b4fc;
+}
+
+/* ---- 币种标识 ---- */
+#BalanceCurrency {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 11px;
+    font-weight: 500;
+    padding-left: 4px;
+    padding-top: 10px;
+}
+
+
+/* ---- 今日消耗标签 ---- */
+#DailyCostHeader {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+#DailyCostHeader:hover {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+#DailyCostValue {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+
+#DailyCostValue:hover {
+    color: #a5b4fc;
+}
+
+/* ---- DailyCostCard 已移除，合并到主布局 ---- */
+
+#StatsLabel {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+#StatsValue {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+#StatsSubLabel {
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 10px;
+}
+
+/* ---- 分割线 ---- */
+#Divider {
+    background: rgba(255, 255, 255, 0.06);
+    max-height: 1px;
+    min-height: 1px;
+}
+
+/* ---- 设置对话框 ---- */
+#SettingsDialog {
+    background: rgba(22, 22, 34, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+}
+
+#SettingsTitle {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+#SettingsSectionTitle {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+QLabel#SettingsDesc {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+}
+
+/* ---- 输入框 ---- */
+QLineEdit {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #ffffff;
+    font-size: 13px;
+    selection-background-color: rgba(99, 102, 241, 0.4);
+    min-height: 20px;
+}
+
+QLineEdit:focus {
+    border: 1px solid rgba(99, 102, 241, 0.6);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+QLineEdit::placeholder {
+    color: rgba(255, 255, 255, 0.25);
+}
+
+/* ---- 按钮 ---- */
+QPushButton {
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    min-height: 20px;
+}
+
+#PrimaryBtn {
+    background: rgba(99, 102, 241, 0.9);
+    border: none;
+    color: white;
+}
+
+#PrimaryBtn:hover {
+    background: rgba(99, 102, 241, 1);
+}
+
+#PrimaryBtn:pressed {
+    background: rgba(79, 82, 221, 1);
+}
+
+#SecondaryBtn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+#SecondaryBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+#DangerBtn {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+#DangerBtn:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+/* ---- 状态指示器 ---- */
+#StatusIndicator {
+    border-radius: 4px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+#StatusOK {
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+}
+
+#StatusError {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+#StatusLoading {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+}
+
+/* ---- 刷新按钮 ---- */
+#RefreshBtn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 4px 12px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    min-height: 16px;
+}
+
+#RefreshBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* ---- 快捷测试区 ---- */
+#TestCard {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+QTextEdit {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+    selection-background-color: rgba(99, 102, 241, 0.4);
+}
+
+QTextEdit:focus {
+    border: 1px solid rgba(99, 102, 241, 0.4);
+}
+
+/* ---- 滚动条 ---- */
+QScrollBar:vertical {
+    background: transparent;
+    width: 4px;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+/* ---- 标签页 ---- */
+QTabWidget::pane {
+    background: transparent;
+    border: none;
+}
+
+QTabBar::tab {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.4);
+    border: none;
+    padding: 8px 16px;
+    margin-right: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+}
+
+QTabBar::tab:selected {
+    color: #ffffff;
+    border-bottom: 2px solid rgba(99, 102, 241, 0.8);
+}
+
+QTabBar::tab:hover:!selected {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* ---- 工具栏提示 ---- */
+QToolTip {
+    background: rgba(30, 30, 45, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #e0e0e0;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+/* ---- 可用状态标识（标题栏右上角） ---- */
+#BalanceStatus {
+    color: #4ade80;
+    font-size: 12px;
+    font-weight: 600;
+    padding-right: 6px;
+}
+
+#BalanceStatusLoading {
+    color: #fbbf24;
+    font-size: 12px;
+    font-weight: 600;
+    padding-right: 6px;
+}
+
+#BalanceStatusError {
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 600;
+    padding-right: 6px;
+}
+
+#BalanceStatusInactive {
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 12px;
+    font-weight: 600;
+    padding-right: 6px;
+}
+
+/* ---- 同步时间（底部刷新行） ---- */
+#SyncTimeLabel {
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 11px;
+}

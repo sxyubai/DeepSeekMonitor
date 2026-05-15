@@ -1,0 +1,15 @@
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Local user config (do not commit API keys or DB)
+config.json
+app_settings.json
+usage.db
+nul
+
+# PyInstaller build artifacts
+build/
+dist/
