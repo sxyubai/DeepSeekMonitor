@@ -8,6 +8,11 @@ DeepSeek Monitor - Windows 桌面悬浮窗
 import sys
 import os
 import threading
+
+# Ensure project root is in sys.path (for utils import)
+_project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
 from datetime import datetime
 from typing import Optional
 
@@ -26,6 +31,7 @@ from settings_dialog import (
     SettingsDialog, load_api_key, clear_api_key, save_api_key,
     load_app_settings, save_app_settings,
 )
+from utils.auto_start import set_auto_start, is_auto_start_enabled
 
 
 # ---- 全局资源路径 ----
@@ -92,7 +98,17 @@ class DeepSeekMonitorApp:
         self._setup_tray()
         self._setup_connections()
         self._load_saved_key()
-        self._window.show()
+
+        # 读取应用设置
+        _settings = load_app_settings()
+        # 应用开机自启（默认开启）
+        if _settings.get("auto_start", True):
+            set_auto_start(True)
+        # 仅自启动时才自动缩小到托盘
+        if "--autostart" in sys.argv and _settings.get("auto_minimize", True):
+            self._window.hide()
+        else:
+            self._window.show()
 
         # 首次自动刷新
         QTimer.singleShot(500, self._refresh_balance)
@@ -154,7 +170,7 @@ class DeepSeekMonitorApp:
         subtitle_label = QLabel(
             '<a href="https://github.com/sxyubai/DeepSeekMonitor" '
             'style="color: rgba(255,255,255,0.4); text-decoration: none;">'
-            "v1.0 · © 2026 sxyubai</a>"
+            "v1.1 · © 2026 sxyubai</a>"
         )
         subtitle_label.setOpenExternalLinks(True)
         subtitle_label.setStyleSheet("font-size: 10px;")

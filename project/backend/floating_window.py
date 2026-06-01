@@ -47,40 +47,33 @@ class DailyConsumptionPopup(QFrame):
         layout.setContentsMargins(12, 10, 12, 10)
         layout.setSpacing(4)
 
-        title = QLabel("近 7 天消耗")
+        title = QLabel("近7天消耗")
         title.setStyleSheet(
             "color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; letter-spacing: 1px;"
         )
         layout.addWidget(title)
 
-        # 预创建 7 天行 + 分隔线 + 合计行，避免动态创建/销毁的布局问题
-        self._day_rows = []  # (day_label, cost_label)
+        self._day_rows = []
         for d in range(7):
             row = QHBoxLayout()
             row.setSpacing(8)
-
             day_label = QLabel("--")
             day_label.setStyleSheet("color: rgba(255,255,255,0.5); font-size: 11px;")
             row.addWidget(day_label)
-
             row.addStretch()
-
             cost_label = QLabel("¥0.00")
             cost_label.setStyleSheet("color: rgba(255,255,255,0.85); font-size: 11px; font-weight: 600;")
             row.addWidget(cost_label)
-
             container = QWidget()
             container.setLayout(row)
             layout.addWidget(container)
             self._day_rows.append((day_label, cost_label))
 
-        # 分隔线
         self._sep = QFrame()
         self._sep.setFrameShape(QFrame.HLine)
         self._sep.setStyleSheet("background: rgba(255,255,255,0.08); max-height: 1px;")
         layout.addWidget(self._sep)
 
-        # 合计行
         total_row = QHBoxLayout()
         total_row.setSpacing(8)
         total_label = QLabel("7天合计")
@@ -96,8 +89,7 @@ class DailyConsumptionPopup(QFrame):
 
         layout.addStretch()
 
-    def update_data(self, days_data: List[Dict[str, Any]]):
-        """更新7天数据"""
+    def update_data(self, days_data):
         if not days_data:
             for day_label, cost_label in self._day_rows:
                 day_label.setText("--")
@@ -135,10 +127,13 @@ class BalanceCard(QWidget):
     balance_clicked = Signal()
     daily_cost_hovered = Signal()
     daily_cost_unhovered = Signal()
+    mode_toggled = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("BalanceCard")
+        self._showing_period = False
+        self._period_cost_value = 0.0
         self._setup_ui()
 
     def _setup_ui(self):
@@ -158,10 +153,11 @@ class BalanceCard(QWidget):
 
         header_row.addStretch()
 
-        daily_title = QLabel("今日消耗")
-        daily_title.setObjectName("DailyCostHeader")
-        daily_title.setFixedWidth(80)
-        header_row.addWidget(daily_title)
+        self._daily_title = QLabel("今日消耗")
+        self._daily_title.setObjectName("DailyCostHeader")
+        self._daily_title.setFixedWidth(80)
+        self._daily_title.setCursor(Qt.CursorShape.PointingHandCursor)
+        header_row.addWidget(self._daily_title)
 
         layout.addLayout(header_row)
 
@@ -225,11 +221,17 @@ class BalanceCard(QWidget):
                     return True
 
         if obj == self._daily_cost_label:
-            if event.type() == QEvent.Type.Enter:
+            if event.type() == QEvent.Type.MouseButtonPress:
+                self._on_cost_clicked()
+            elif event.type() == QEvent.Type.Enter:
                 # hover 高亮效果在 QSS 中处理，此处仅触发弹窗
                 self.daily_cost_hovered.emit()
             elif event.type() == QEvent.Type.Leave:
                 self.daily_cost_unhovered.emit()
+
+        if obj == self._daily_title:
+            if event.type() == QEvent.Type.MouseButtonPress:
+                self._on_cost_clicked()
 
         return super().eventFilter(obj, event)
 
@@ -257,13 +259,39 @@ class BalanceCard(QWidget):
 
     def update_daily_cost(self, cost: float):
         """更新今日消耗显示（保留2位小数）"""
-        self._daily_cost_label.setText(f"¥{cost:.2f}")
+        if not self._showing_period:
+            self._daily_cost_label.setText(f"¥{cost:.2f}")
+
+    def update_period_cost(self, cost: float):
+        """更新周期消耗显示"""
+        self._period_cost_value = cost
+        if self._showing_period:
+            self._daily_cost_label.setText(f"¥{cost:.2f}")
+
+    def toggle_mode(self) -> bool:
+        """切换 今日消耗 / 周期消耗，返回当前模式"""
+        self._showing_period = not self._showing_period
+        if self._showing_period:
+            self._daily_title.setText("周期消耗")
+        else:
+            self._daily_title.setText("今日消耗")
+        return self._showing_period
+
+    def is_period_mode(self) -> bool:
+        return self._showing_period
+
+    def _on_cost_clicked(self):
+        """点击切换 今日消耗 / 周期消耗"""
+        self.toggle_mode()
+        self.mode_toggled.emit()
+        self.daily_cost_hovered.emit()
 
 
 class FloatingWindow(QWidget):
     """主悬浮窗"""
 
     refresh_requested = Signal()
+    reset_period_requested = Signal()
     open_settings_requested = Signal()
     close_requested = Signal()
 
@@ -315,6 +343,8 @@ class FloatingWindow(QWidget):
         self._balance_card.daily_cost_hovered.connect(self._show_daily_popup)
         self._balance_card.daily_cost_unhovered.connect(self._on_daily_cost_unhovered)
         self._balance_card.balance_clicked.connect(self._on_balance_clicked)
+        self._balance_card.mode_toggled.connect(self._update_period_display)
+
 
         # 安装事件过滤器跟踪 popup hover
         self._daily_popup.installEventFilter(self)
@@ -379,6 +409,13 @@ class FloatingWindow(QWidget):
         self._refresh_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._refresh_btn.clicked.connect(self.refresh_requested.emit)
         bottom_row.addWidget(self._refresh_btn)
+
+        self._reset_btn = QPushButton("◳ 重置")
+        self._reset_btn.hide()
+        self._reset_btn.setObjectName("RefreshBtn")
+        self._reset_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._reset_btn.clicked.connect(self._reset_period)
+        bottom_row.addWidget(self._reset_btn)
 
         bottom_row.addStretch()
 
@@ -493,8 +530,39 @@ class FloatingWindow(QWidget):
             balance = self._balance_data["total_balance"]
             consumption = self._usage_tracker.update_daily_balance(balance)
             self._balance_card.update_daily_cost(consumption)
+            # 自动初始化周期消耗（首次获取余额时设置起点）
+            if not self._usage_tracker.is_period_initialized():
+                self._usage_tracker.reset_period(balance)
+            # 同时更新周期消耗
+            period_cost = self._usage_tracker.get_period_consumption(balance)
+            self._balance_card.update_period_cost(period_cost)
         else:
             self._balance_card.update_daily_cost(0.0)
+            self._balance_card.update_period_cost(0.0)
+
+    def _update_period_display(self):
+        """刷新周期消耗显示（切换模式时调用）"""
+        if self._balance_card.is_period_mode():
+            self._reset_btn.show()
+        else:
+            self._reset_btn.hide()
+        if self._balance_data and "total_balance" in self._balance_data:
+            balance = self._balance_data["total_balance"]
+            if self._balance_card.is_period_mode():
+                period_cost = self._usage_tracker.get_period_consumption(balance)
+                self._balance_card.update_period_cost(period_cost)
+            else:
+                daily_cost = self._usage_tracker.get_daily_consumption()
+                self._balance_card.update_daily_cost(daily_cost)
+
+    def _reset_period(self):
+        """重置周期消耗：保存当前余额为起点"""
+        if self._balance_data and "total_balance" in self._balance_data:
+            balance = self._balance_data["total_balance"]
+            self._usage_tracker.reset_period(balance)
+            self._update_period_display()
+        self.reset_period_requested.emit()
+
 
     def _get_weekly_consumption(self) -> List[Dict[str, Any]]:
         """获取近7天消耗数据（基于余额差额）"""
@@ -504,7 +572,7 @@ class FloatingWindow(QWidget):
                 SELECT date, consumption
                 FROM (
                     SELECT date,
-                           ROUND(MAX(max_balance) - MIN(last_balance), 6) AS consumption
+                           total_consumption AS consumption
                     FROM daily_balance
                     WHERE date >= date('now', '-6 days', 'localtime')
                     GROUP BY date
@@ -677,14 +745,14 @@ class FloatingWindow(QWidget):
     # ---- 已删除：尺寸调整相关功能 ----
 
     def _on_daily_cost_unhovered(self):
-        """鼠标离开今日消耗标签 — 启动延迟关闭定时器"""
+        """鼠标离开今日消耗标签 → 启动延迟关闭定时器"""
         self._popup_hide_timer.start(300)
+
 
     def _show_daily_popup(self):
         """鼠标悬停显示每日消耗弹窗（带渐入动画）"""
         data = self._get_weekly_consumption()
         self._daily_popup.update_data(data)
-
         # 定位到每日消耗label下方
         label_pos = self._daily_cost_ref.mapToGlobal(QPoint(0, self._daily_cost_ref.height()))
         self._daily_popup.move(label_pos.x(), label_pos.y() + 4)

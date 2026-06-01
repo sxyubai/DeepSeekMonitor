@@ -10,10 +10,11 @@ from typing import Optional
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
     QLineEdit, QPushButton, QSpacerItem, QSizePolicy,
-    QWidget, QMessageBox, QSlider, QComboBox,
+    QWidget, QMessageBox, QSlider, QComboBox, QCheckBox,
 )
 from PySide6.QtCore import Qt, Signal, QSize, QTimer
 from PySide6.QtGui import QFont, QIcon
+from utils.auto_start import set_auto_start, is_auto_start_enabled
 
 # 尝试使用 keyring，失败则回退到文件加密存储
 try:
@@ -189,6 +190,9 @@ class SettingsDialog(QDialog):
         self._current_interval = current_interval
         self._dragging = False
         self._drag_pos = None
+        saved = load_app_settings()
+        self._current_auto_start = saved.get("auto_start", True)
+        self._current_auto_minimize = saved.get("auto_minimize", True)
 
         self._setup_ui()
 
@@ -409,6 +413,58 @@ class SettingsDialog(QDialog):
         self._status_label.setVisible(False)
         container_layout.addWidget(self._status_label)
 
+        container_layout.addSpacing(12)
+
+        # 开机自启
+        # 开机自启
+        auto_start_row = QHBoxLayout()
+        auto_start_row.setSpacing(8)
+        self._auto_start_check = QCheckBox("开机自启")
+        self._auto_start_check.setChecked(self._current_auto_start)
+        self._auto_start_check.setStyleSheet("""
+            QCheckBox {
+                spacing: 6px;
+                color: rgba(255,255,255,0.7);
+                font-size: 13px;
+            }
+            QCheckBox::indicator {
+                width: 14px; height: 14px; border-radius: 3px;
+                border: 2px solid rgba(255,255,255,0.2); background: transparent;
+            }
+            QCheckBox::indicator:checked {
+                background: rgba(99, 102, 241, 0.9);
+                border: 2px solid rgba(99, 102, 241, 0.9);
+            }
+            QCheckBox::indicator:hover { border: 2px solid rgba(255,255,255,0.4); }
+        """)
+        self._auto_start_check.toggled.connect(self._on_auto_start_toggled)
+        auto_start_row.addWidget(self._auto_start_check)
+        container_layout.addLayout(auto_start_row)
+        container_layout.addSpacing(8)
+
+        # 启动时缩小到托盘
+        minimize_row = QHBoxLayout()
+        minimize_row.setSpacing(8)
+        self._auto_minimize_check = QCheckBox("启动时缩小到托盘")
+        self._auto_minimize_check.setChecked(self._current_auto_minimize)
+        self._auto_minimize_check.setStyleSheet("""
+            QCheckBox {
+                spacing: 6px;
+                color: rgba(255,255,255,0.7);
+                font-size: 13px;
+            }
+            QCheckBox::indicator {
+                width: 14px; height: 14px; border-radius: 3px;
+                border: 2px solid rgba(255,255,255,0.2); background: transparent;
+            }
+            QCheckBox::indicator:checked {
+                background: rgba(99, 102, 241, 0.9);
+                border: 2px solid rgba(99, 102, 241, 0.9);
+            }
+            QCheckBox::indicator:hover { border: 2px solid rgba(255,255,255,0.4); }
+        """)
+        minimize_row.addWidget(self._auto_minimize_check)
+        container_layout.addLayout(minimize_row)
     def _update_action_btn_style(self, has_key: bool):
         """根据是否有 key 切换按钮样式"""
         if has_key:
@@ -501,6 +557,8 @@ class SettingsDialog(QDialog):
         merged = load_app_settings()
         merged["opacity"] = self._opacity_slider.value() / 100.0
         merged["refresh_interval"] = [30, 60, 120, 300, 0][self._interval_combo.currentIndex()]
+        merged["auto_start"] = self._auto_start_check.isChecked()
+        merged["auto_minimize"] = self._auto_minimize_check.isChecked()
         save_app_settings(merged)
         self.settings_changed.emit(merged)
 
@@ -526,6 +584,13 @@ class SettingsDialog(QDialog):
             )
             self._status_label.setVisible(True)
             self.api_key_cleared.emit()
+
+    def _on_auto_start_toggled(self, checked: bool):
+        """开机自启开关"""
+        set_auto_start(checked)
+        merged = load_app_settings()
+        merged["auto_start"] = checked
+        save_app_settings(merged)
 
     # ---- 窗口拖动 ----
     def mousePressEvent(self, event):
