@@ -303,12 +303,6 @@ class DeepSeekMonitorApp:
     def _on_close_window(self):
         """关闭窗口（隐藏到托盘）"""
         self._window.hide()
-        self._tray.showMessage(
-            "DeepSeek Monitor",
-            "悬浮窗已隐藏到系统托盘，双击可重新显示。",
-            QSystemTrayIcon.Information,
-            2000,
-        )
 
     def _on_tray_activated(self, reason):
         """系统托盘被激活"""

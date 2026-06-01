@@ -39,7 +39,7 @@ class DailyConsumptionPopup(QFrame):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.setMouseTracking(True)
-        self.setFixedSize(240, 200)
+        self.setFixedSize(240, 300)
         self._setup_ui()
 
     def _setup_ui(self):
@@ -53,64 +53,72 @@ class DailyConsumptionPopup(QFrame):
         )
         layout.addWidget(title)
 
-        self._list_widget = QVBoxLayout()
-        self._list_widget.setSpacing(3)
-        layout.addLayout(self._list_widget)
-        layout.addStretch()
-
-    def update_data(self, days_data: List[Dict[str, Any]]):
-        """更新7天数据"""
-        while self._list_widget.count():
-            item = self._list_widget.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
-
-        if not days_data:
-            empty = QLabel("暂无消耗记录")
-            empty.setStyleSheet("color: rgba(255,255,255,0.3); font-size: 11px;")
-            self._list_widget.addWidget(empty)
-            return
-
-        total_7day = sum(d.get("total_cost", 0) for d in days_data)
-
-        for d in days_data:
-            day = d.get("date", "----")
-            cost = d.get("total_cost", 0)
-
+        # 预创建 7 天行 + 分隔线 + 合计行，避免动态创建/销毁的布局问题
+        self._day_rows = []  # (day_label, cost_label)
+        for d in range(7):
             row = QHBoxLayout()
             row.setSpacing(8)
 
-            day_label = QLabel(day)
+            day_label = QLabel("--")
             day_label.setStyleSheet("color: rgba(255,255,255,0.5); font-size: 11px;")
             row.addWidget(day_label)
 
             row.addStretch()
 
-            cost_label = QLabel(f"¥{cost:.2f}")
+            cost_label = QLabel("¥0.00")
             cost_label.setStyleSheet("color: rgba(255,255,255,0.85); font-size: 11px; font-weight: 600;")
             row.addWidget(cost_label)
 
             container = QWidget()
             container.setLayout(row)
-            self._list_widget.addWidget(container)
+            layout.addWidget(container)
+            self._day_rows.append((day_label, cost_label))
 
-        sep = QFrame()
-        sep.setFrameShape(QFrame.HLine)
-        sep.setStyleSheet("background: rgba(255,255,255,0.08); max-height: 1px;")
-        self._list_widget.addWidget(sep)
+        # 分隔线
+        self._sep = QFrame()
+        self._sep.setFrameShape(QFrame.HLine)
+        self._sep.setStyleSheet("background: rgba(255,255,255,0.08); max-height: 1px;")
+        layout.addWidget(self._sep)
 
+        # 合计行
         total_row = QHBoxLayout()
         total_row.setSpacing(8)
         total_label = QLabel("7天合计")
         total_label.setStyleSheet("color: rgba(255,255,255,0.5); font-size: 11px;")
         total_row.addWidget(total_label)
         total_row.addStretch()
-        total_cost_label = QLabel(f"¥{total_7day:.2f}")
-        total_cost_label.setStyleSheet("color: #ffffff; font-size: 12px; font-weight: 700;")
-        total_row.addWidget(total_cost_label)
+        self._total_cost_label = QLabel("¥0.00")
+        self._total_cost_label.setStyleSheet("color: #ffffff; font-size: 12px; font-weight: 700;")
+        total_row.addWidget(self._total_cost_label)
         total_container = QWidget()
         total_container.setLayout(total_row)
-        self._list_widget.addWidget(total_container)
+        layout.addWidget(total_container)
+
+        layout.addStretch()
+
+    def update_data(self, days_data: List[Dict[str, Any]]):
+        """更新7天数据"""
+        if not days_data:
+            for day_label, cost_label in self._day_rows:
+                day_label.setText("--")
+                cost_label.setText("¥0.00")
+            self._total_cost_label.setText("¥0.00")
+            self._sep.show()
+            return
+
+        total_7day = sum(d.get("total_cost", 0) for d in days_data)
+
+        for i, d in enumerate(days_data):
+            if i >= len(self._day_rows):
+                break
+            day_label, cost_label = self._day_rows[i]
+            day = d.get("date", "----")
+            cost = d.get("total_cost", 0)
+            day_label.setText(day)
+            cost_label.setText(f"¥{cost:.2f}")
+
+        self._total_cost_label.setText(f"¥{total_7day:.2f}")
+        self._sep.show()
 
     def paintEvent(self, event):
         painter = QPainter(self)
